@@ -1,0 +1,257 @@
+######基于reads
+
+zcat CK1.R1.fastq.gz CK1.R2.fastq.gz | gzip -c > CK1_combined.fastq.gz
+zcat CK2.R1.fastq.gz CK2.R2.fastq.gz | gzip -c > CK2_combined.fastq.gz
+zcat CK3.R1.fastq.gz CK3.R2.fastq.gz | gzip -c > CK3_combined.fastq.gz
+zcat CK4.R1.fastq.gz CK4.R2.fastq.gz | gzip -c > CK4_combined.fastq.gz
+
+humann -i CK2_combined.fastq.gz -o hmp_subset --output-basename CK2 --remove-temp-output --o-log Log/Sample2.humann.log --threads 24
+
+humann_regroup_table \
+    -i hmp_subset/CK1_genefamilies.tsv \
+    -g uniref90_level4ec \
+    -o hmp_subset/CK1_level4ec.tsv
+
+humann_unpack_pathways --input-genes hmp_subset/CK1_genefamilies.tsv --input-pathways hmp_subset/CK1_pathabundance.tsv --output ck1.OUTPUT.tsv --remove-taxonomy
+
+
+
+humann_join_tables \
+  --input hmp_subset \
+  --file_name genefamilies \
+  --output hmp_subset/humann/genefamilies.tsv
+
+humann_renorm_table \
+  --input hmp_subset/humann/genefamilies.tsv \
+  --units cpm \
+  --output hmp_subset/humann/genefamilies_cpm.tsv
+
+humann_split_stratified_table \
+  --input hmp_subset/humann/genefamilies_cpm.tsv \
+  --output hmp_subset/humann/ 
+
+
+
+
+
+
+
+
+
+
+
+
+/home/data/fuli05/database/humann
+
+humann_databases --download chocophlan full /home/data/fuli05/database/humann --update-config yes
+
+
+http://huttenhower.sph.harvard.edu/humann_data/chocophlan/full_chocophlan.v201901_v31.tar.gz
+
+humann_databases --download uniref uniref90_diamond /home/data/fuli05/database/humann --update-config yes
+
+http://huttenhower.sph.harvard.edu/humann_data/uniprot/uniref_annotated/uniref90_annotated_v201901b_full.tar.gz
+
+humann_databases --download utility_mapping full /home/data/fuli05/database/humann --update-config yes
+
+http://huttenhower.sph.harvard.edu/humann_data/full_mapping_v201901b.tar.gz
+
+
+tar -zxvf full_chocophlan.v201901_v31.tar.gz -C ./chocophlan/
+
+tar -zxvf full_mapping_v201901b.tar.gz -C ./mapping/
+
+tar -zxvf uniref90.tar.gz -C uniref90
+
+humann_config --update database_folders nucleotide /home/data/ssy032/total_database/humann/chocophlan
+humann_config --update database_folders protein /home/data/ssy032/total_database/humann/uniref90/uniref90/protein_database
+humann_config --update database_folders utility_mapping /home/data/ssy032/total_database/humann/mapping/
+
+
+
+#######基于拼接contig##################################################
+
+####样品质量评估，得到干净的序列，即qc.fastq.gz
+fastp -i L1HGI2100439--PLA_H_1_D60.R1.raw.fastq.gz -I L1HGI2100439--PLA_H_1_D60.R2.raw.fastq.gz -o qc.pla1.R1.fastq.gz  -O qc.pla1.R2.fastq.gz -w 16 -j pla1report.json -h pla1report.html
+fastp -i L1HGI2100440--PLA_H_2_D60.R1.raw.fastq.gz -I L1HGI2100440--PLA_H_2_D60.R2.raw.fastq.gz -o qc.pla2.R1.fastq.gz  -O qc.pla2.R2.fastq.gz -w 16 -j pla2report.json -h pla2report.html
+fastp -i L1HGI2100441--PLA_H_3_D60.R1.raw.fastq.gz -I L1HGI2100441--PLA_H_3_D60.R2.raw.fastq.gz -o qc.pla3.R1.fastq.gz  -O qc.pla3.R2.fastq.gz -w 16 -j pla3report.json -h pla3report.html
+fastp -i L1HGI2100442--PLA_H_4_D60.R1.raw.fastq.gz -I L1HGI2100442--PLA_H_4_D60.R2.raw.fastq.gz -o qc.pla4.R1.fastq.gz  -O qc.pla4.R2.fastq.gz -w 16 -j pla4report.json -h pla4report.html
+
+
+fastp -i L1HGI2100443--PE_H_1_D60.R1.raw.fastq.gz -I L1HGI2100443--PE_H_1_D60.R2.raw.fastq.gz -o qc.pe1.R1.fastq.gz  -O qc.pe1.R2.fastq.gz -w 16 -j pe1report.json -h pe1report.html
+fastp -i L1HGI2100444--PE_H_2_D60.R1.raw.fastq.gz -I L1HGI2100444--PE_H_2_D60.R2.raw.fastq.gz -o qc.pe2.R1.fastq.gz  -O qc.pe2.R2.fastq.gz -w 16 -j pe2report.json -h pe2report.html
+fastp -i L1HGI2100445--PE_H_3_D60.R1.raw.fastq.gz -I L1HGI2100445--PE_H_3_D60.R2.raw.fastq.gz -o qc.pe3.R1.fastq.gz  -O qc.pe3.R2.fastq.gz -w 16 -j pe3report.json -h pe3report.html
+fastp -i L1HGI2100446--PE_H_4_D60.R1.raw.fastq.gz -I L1HGI2100446--PE_H_4_D60.R2.raw.fastq.gz -o qc.pe4.R1.fastq.gz  -O qc.pe4.R2.fastq.gz -w 16 -j pe4report.json -h pe4report.html
+
+
+fastp -i L1HGI2100447--PS_H_1_D60.R1.raw.fastq.gz -I L1HGI2100447--PS_H_1_D60.R2.raw.fastq.gz -o qc.ps1.R1.fastq.gz  -O qc.ps1.R2.fastq.gz -w 16 -j ps1report.json -h ps1report.html
+fastp -i L1HGI2100448--PS_H_2_D60.R1.raw.fastq.gz -I L1HGI2100448--PS_H_2_D60.R2.raw.fastq.gz -o qc.ps2.R1.fastq.gz  -O qc.ps2.R2.fastq.gz -w 16 -j ps2report.json -h ps2report.html
+fastp -i L1HGI2100449--PS_H_3_D60.R1.raw.fastq.gz -I L1HGI2100449--PS_H_3_D60.R2.raw.fastq.gz -o qc.ps3.R1.fastq.gz  -O qc.ps3.R2.fastq.gz -w 16 -j ps3report.json -h ps3report.html
+fastp -i L1HGI2100450--PS_H_4_D60.R1.raw.fastq.gz -I L1HGI2100450--PS_H_4_D60.R2.raw.fastq.gz -o qc.ps4.R1.fastq.gz  -O qc.ps4.R2.fastq.gz -w 16 -j ps4report.json -h ps4report.html
+
+
+fastp -i L1HGI2100452--CK2_D60.R1.raw.fastq.gz -I L1HGI2100452--CK2_D60.R2.raw.fastq.gz -o qc.ck2.R1.fastq.gz  -O qc.ck2.R2.fastq.gz -w 16 -j ck2report.json -h ck2report.html
+fastp -i L1HGI2100453--CK3_D60.R1.raw.fastq.gz -I L1HGI2100453--CK3_D60.R2.raw.fastq.gz -o qc.ck3.R1.fastq.gz  -O qc.ck3.R2.fastq.gz -w 16 -j ck3report.json -h ck3report.html
+fastp -i L1HGI2100454--CK4_D60.R1.raw.fastq.gz -I L1HGI2100454--CK4_D60.R2.raw.fastq.gz -o qc.ck4.R1.fastq.gz  -O qc.ck4.R2.fastq.gz -w 16 -j ck4report.json -h ck4report.html
+
+fastp -i CK1.R1.fastq.gz -I CK1.R2.fastq.gz -o qc.ck1.R1.fastq.gz  -O qc.ck1.R2.fastq.gz -w 16 -j ck1report.json -h ck1report.html
+
+
+#####样品拼接，得到拼接系列，每个样品一个文件夹，比如第一行-o为文件夹名字，--out-prefix为生成的contig名，此命令会生成ck1.contig.fa
+megahit -1 qc.ck1.R1.fastq.gz -2 qc.ck1.R2.fastq.gz -o megahit --out-prefix ck1 -m 0.5 -t 24 --min-contig-len 600
+
+megahit -1 qc.ck2.R1.fastq.gz -2 qc.ck2.R2.fastq.gz -o megahitck2 --out-prefix ck2 -m 0.5 -t 24 --min-contig-len 600
+
+
+#####样品基因预测，得到核酸序列里可能有的基因，此次生成ck1.gene.fa
+
+mkdir prodigal ###建个文件夹
+
+prodigal -i megahit/final.contigs.fa \
+    -d prodigal/ck1.gene.fa \
+    -o prodigal/ck1.gene.gff \
+    -p meta -f gff > prodigal/gene.log 2>&1 
+
+
+
+
+
+####筛选完整基因，可选可不选
+###seqkit stat gene.fa 
+###grep -c 'partial=00' gene.fa 
+###grep 'partial=00' gene.fa | cut -f1 -d ' '| sed 's/>//' > full_length.id
+###seqkit grep -f full_length.id gene.fa > full_length.fa
+
+
+###去冗余，就是把这个样本里相同的基因合并成一条
+
+##先进入文件夹
+cd prodigal
+
+##这一步生成去冗余的文件，ck1.nr.gene.fa
+cd-hit-est \
+  -i ck1.gene.fa \
+  -o ck1.nr.gene.fa \
+  -c 0.95 \
+  -aS 0.9 \
+  -M 100000 \
+  -T 10
+
+#####翻译成蛋白，生成ck1.protein.fa
+
+seqkit translate --trim ck1.nr.gene.fa \
+    > ck1.protein.fa
+
+######基因定量####
+#新建文件夹
+mkdir salmon
+
+#定量第一步，生成索引
+salmon index \
+  -t ck1.nr.gene.fa \
+  -p 10 \
+  -i salmon/index 
+
+#定量第二步，这里需要标准后的测序文件，定量，生成ck1.quant
+salmon quant \
+    -i salmon/index -l A -p 10 --meta \
+    -1 /home/data/ssy032/soil_maize/rawdata/rawdata/ck/qc.ck1.R1.fastq.gz \
+    -2 /home/data/ssy032/soil_maize/rawdata/rawdata/ck/qc.ck1.R2.fastq.gz \
+    -o salmon/ck1.quant
+
+#定量，生成定量单位为tpm的文件
+salmon quantmerge --quants salmon/*.quant \
+    -o salmon/gene.TPM
+
+###功能基因注释，使用eggnog基因库
+conda activate eggnog
+
+###第一步，生成个hits文件，还有seed_orthologs文件
+emapper.py --no_annot --no_file_comments --override \
+    -i ck1.protein.fa \
+  --cpu 12 -m diamond \
+   --output_dir  eggnog \
+   --output ck1
+
+###第二步，注释，生成个.annotations文件
+emapper.py \
+  --annotate_hits_table eggnog/ck1.emapper.seed_orthologs \
+  --cpu 12 -m diamond --no_file_comments --override \
+  -o eggnog/ck1.output
+
+##第三步，生成个output文件，实际上可以导出来了，表头就是各种功能
+
+grep -v '^##' eggnog/pla2.output.emapper.annotations | sed '1 s/^#//' \
+      > eggnog/pla2.output
+
+csvtk -t headers -v eggnog/pla2.output
+
+###生成各种丰度表，导入gene的tpm数据，计算各种功能丰都
+python3 ~/summarizeAbundance.py \
+  -i salmon/gene.TPM \
+  -m eggnog/ck1.output \
+  -c '7,12,19' -s '*+,+,' -n raw \
+  -o eggnog/ck1.eggnog
+
+sed -i 's#^ko:##' eggnog/pla2.eggnog.KEGG_ko.raw.txt
+sed -i '/^-/d' eggnog/pla2.eggnog*
+
+
+###添加注释啥的，生成的表看看就明白了
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print a[$1],$0}' \
+  /home/data/ssy032/EasyMicrobiome/kegg/KO_description.txt \
+  eggnog/ck1.eggnog.KEGG_ko.raw.txt | \
+  sed 's/^\t/Unannotated\t/' \
+  > eggnog/ck1.eggnog.KEGG_ko.TPM.txt
+
+###KO功能，分层的
+python3 ~/summarizeAbundance.py \
+  -i eggnog/ck1.eggnog.KEGG_ko.raw.txt \
+  -m /home/data/ssy032/EasyMicrobiome/kegg/KO1-4.txt \
+  -c 2,3,4 -s ',+,+,' -n raw \
+  -o eggnog/ck1.KEGG.txt
+
+####cazy库的
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print a[$1],$0}' \
+   /home/data/ssy032/EasyMicrobiome/dbcan2/CAZy_description.txt eggnog/ck1.eggnog.CAZy.raw.txt | \
+  sed 's/^\t/Unannotated\t/' > eggnog/ck1.eggnog.CAZy.TPM.txt
+
+###cog库的
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$3} NR>FNR{print a[$1],$0}' \
+  /home/data/ssy032/EasyMicrobiome/eggnog/COG.anno eggnog/ck1.eggnog.COG_category.raw.txt > \
+  eggnog/ck1.eggnog.COG_category.TPM.txt
+
+
+######基于拼接的物种注释####
+kraken2 --db /home/data/ssy032/total_database/kraken2 \
+  ck1.nr.gene.fa \
+  --threads 24 \
+  --report ck1.NRgene.report \
+  --output ck1.NRgene.output
+
+###提取内容
+grep '^C' ck1.NRgene.output|cut -f 2,3|sed "1i\Name\ttaxid" \
+  > ck1.NRgene.taxid
+##对比上
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $1,a[$2]}' \
+  /home/data/ssy032/EasyMicrobiome/kraken2/taxonomy.txt \
+  ck1.NRgene.taxid \
+  > ck1.nucleotide.tax
+####出来界一个文件，门一个文件之类的
+python3 ~/summarizeAbundance.py \
+  -i salmon/gene.TPM \
+  -m ck1.nucleotide.tax \
+  -c '2,3,4,5,6,7,8,9' -s ',+,+,+,+,+,+,+,' -n raw \
+  -o ck1.tax
+
+
+
+
+kraken2 --db /home/data/fuli05/database/kraken2 --threads 24 --report ck1.report --output ck1.output CK1_combined.fastq.gz --gzip-compressed --use-names --report-zero-counts
+
+
+bracken -d /home/data/fuli05/database/kraken2 \
+      -i ck1.report \
+      -r 150 -l P -t 0 \
+      -o ck1.braken
+
